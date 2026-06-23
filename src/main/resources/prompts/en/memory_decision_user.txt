@@ -1,0 +1,25 @@
+Additional memory management instructions:
+{{custom_instructions}}
+
+Current memories:
+{{existing_memories}}
+
+New extracted facts:
+{{retrieved_facts}}
+
+Compare the new extracted facts against the current memories and decide the operation for each meaningful change.
+
+Return strict JSON only in this shape:
+{
+  "memory": [
+    {
+      "id": "existing-id-or-new",
+      "text": "final memory text",
+      "event": "ADD|UPDATE|DELETE|NONE",
+      "old_memory": "old memory text when event is UPDATE"
+    }
+  ]
+}
+
+If no change is needed, return:
+{"memory":[]}

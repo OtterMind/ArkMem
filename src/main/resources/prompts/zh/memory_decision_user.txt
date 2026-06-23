@@ -1,0 +1,25 @@
+额外记忆管理指令：
+{{custom_instructions}}
+
+当前记忆：
+{{existing_memories}}
+
+新抽取事实：
+{{retrieved_facts}}
+
+请比较新抽取事实和当前记忆，并为每个有意义的变化决定操作。
+
+只返回严格 JSON，格式如下：
+{
+  "memory": [
+    {
+      "id": "已有 ID 或 new",
+      "text": "最终记忆内容",
+      "event": "ADD|UPDATE|DELETE|NONE",
+      "old_memory": "event 为 UPDATE 时填写旧记忆内容"
+    }
+  ]
+}
+
+如果无需变化，返回：
+{"memory":[]}

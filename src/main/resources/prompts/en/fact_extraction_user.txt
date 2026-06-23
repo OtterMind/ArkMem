@@ -1,0 +1,37 @@
+Today is {{today}}.
+
+Extract memorable facts from the new messages. Preserve the language used by the speaker in each memory. Skip greetings, generic comments, transient small talk, and information that will not help future personalization.
+
+Extraction requirements:
+1. Each text value must be understandable on its own and must not require the original message to identify the subject.
+2. If a name, identity, project, location, or time appears in the same message, include that context in the related text.
+3. Do not output fragments such as "prefers concise technical plans", "does not eat cilantro", or "will travel to Hangzhou next Tuesday."
+4. Output complete facts such as "Zhang San prefers concise technical plans", "Zhang San does not eat cilantro", or "Zhang San will travel to Hangzhou next Tuesday."
+5. Do not invent missing context just to make a memory self-contained.
+
+Additional extraction instructions:
+{{custom_instructions}}
+
+Existing memories are provided only for deduplication and linking. Do not extract new facts from existing memories.
+
+Existing memories:
+{{existing_memories}}
+
+New messages:
+{{new_messages}}
+
+Return strict JSON only in this shape:
+{
+  "facts": [
+    {
+      "text": "Self-contained memory text with an explicit subject and necessary context",
+      "metadata": {
+        "linked_memory_ids": ["existing-memory-id-if-related"],
+        "attributed_to": "user-or-assistant-when-clear"
+      }
+    }
+  ]
+}
+
+If there is nothing durable to remember, return:
+{"facts":[]}

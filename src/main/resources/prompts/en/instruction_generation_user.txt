@@ -1,0 +1,12 @@
+Given the use case below, produce:
+1. custom_instructions: one concise paragraph describing what stable facts, preferences, plans, constraints, and recurring context the memory system should prioritize.
+2. test_message: one realistic user sentence suitable for testing memory extraction.
+
+Use case:
+{{use_case}}
+
+Return strict JSON only in this shape:
+{
+  "custom_instructions": "...",
+  "test_message": "..."
+}

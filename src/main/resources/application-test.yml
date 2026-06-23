@@ -1,0 +1,40 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: arkmem
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/arkmem
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 1
+      connection-timeout: 30000
+
+arkmem:
+  api:
+    internal-token:
+  storage:
+    provider: postgres
+  prompt:
+    language: en
+  llm:
+    provider: local
+    api-key:
+    base-url: https://api.openai.com/v1
+    model: gpt-4.1-nano-2025-04-14
+    temperature: 0.2
+  embedding:
+    provider: local
+    api-key:
+    base-url: https://api.openai.com/v1
+    model: text-embedding-3-small
+    local-dimensions: 384
+  memory:
+    default-top-k: 10
+    default-threshold: 0.0
+    duplicate-threshold: 0.985
+    fallback-extraction-enabled: true
