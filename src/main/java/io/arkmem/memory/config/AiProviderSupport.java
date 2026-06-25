@@ -47,11 +47,11 @@ public final class AiProviderSupport {
         if (!"auto".equals(normalizedProvider)) {
             return normalizedProvider;
         }
-        if (hasText(openAiApiKey)) {
-            return "openai";
-        }
         if (hasText(dashscopeApiKey)) {
             return "aliyun-bailian";
+        }
+        if (hasText(openAiApiKey)) {
+            return "openai";
         }
         return normalizedProvider;
     }
@@ -62,13 +62,15 @@ public final class AiProviderSupport {
             String openAiApiKey,
             String dashscopeApiKey
     ) {
-        if (hasText(configuredApiKey)) {
-            return configuredApiKey.trim();
-        }
-
         String effectiveProvider = resolveEffectiveProvider(provider, openAiApiKey, dashscopeApiKey);
         if (isBailianProvider(effectiveProvider)) {
+            if (hasText(configuredApiKey)) {
+                return configuredApiKey.trim();
+            }
             return trimToEmpty(dashscopeApiKey);
+        }
+        if (hasText(configuredApiKey)) {
+            return configuredApiKey.trim();
         }
         if ("openai".equals(effectiveProvider) || "openai-compatible".equals(effectiveProvider)) {
             return trimToEmpty(openAiApiKey);

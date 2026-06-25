@@ -46,10 +46,32 @@ class AiProviderSupportTest {
     }
 
     @Test
-    void preservesExplicitProviderOverEnvironmentInference() {
+    void prefersDashscopeOverOpenAiWhenAutoHasBothKeys() {
+        assertThat(AiProviderSupport.resolveEffectiveProvider("auto", "sk-openai", "sk-dashscope"))
+                .isEqualTo("aliyun-bailian");
+        assertThat(AiProviderSupport.resolveApiKey("auto", "", "sk-openai", "sk-dashscope"))
+                .isEqualTo("sk-dashscope");
+    }
+
+    @Test
+    void usesConfiguredApiKeyForExplicitBailianProvider() {
         assertThat(AiProviderSupport.resolveEffectiveProvider("aliyun-bailian", "sk-openai", "sk-dashscope"))
                 .isEqualTo("aliyun-bailian");
+        assertThat(AiProviderSupport.resolveApiKey("aliyun-bailian", "sk-configured", "sk-openai", "sk-dashscope"))
+                .isEqualTo("sk-configured");
+    }
+
+    @Test
+    void fallsBackToDashscopeApiKeyForBailianWhenConfiguredKeyIsMissing() {
         assertThat(AiProviderSupport.resolveApiKey("aliyun-bailian", "", "sk-openai", "sk-dashscope"))
                 .isEqualTo("sk-dashscope");
+    }
+
+    @Test
+    void doesNotUseOpenAiApiKeyForBailianWhenDashscopeAndConfiguredKeysAreMissing() {
+        assertThat(AiProviderSupport.resolveApiKey("aliyun-bailian", "sk-configured", "sk-openai", null))
+                .isEqualTo("sk-configured");
+        assertThat(AiProviderSupport.resolveApiKey("aliyun-bailian", "", "sk-openai", null))
+                .isEmpty();
     }
 }
