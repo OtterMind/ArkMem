@@ -69,41 +69,52 @@ docker compose up -d postgres
 docker exec -i arkmem-postgres psql -U postgres -d arkmem < src/main/resources/db/schema.sql
 ```
 
-使用本地抽取与本地哈希向量运行服务：
+检查 `src/main/resources/application-dev.yml` 中的数据库和模型配置，然后启动服务：
 
 ```bash
 mvn spring-boot:run
 ```
 
-开发环境默认配置：
+最小需要确认的 YAML 字段：
 
-```text
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/arkmem
-SPRING_DATASOURCE_USERNAME=postgres
-SPRING_DATASOURCE_PASSWORD=postgres
-ARKMEM_LLM_PROVIDER=local
-ARKMEM_EMBEDDING_PROVIDER=local
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/arkmem
+    username: postgres
+    password: postgres
+
+arkmem:
+  llm:
+    provider: aliyun-bailian
+    api-key: your-api-key
+    base-url: https://llm-example.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
+    model: qwen3-max
+  embedding:
+    provider: aliyun-bailian
+    api-key: your-api-key
+    base-url: https://llm-example.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
+    model: text-embedding-v4
 ```
 
 ## 配置
 
-ArkMem 不要求提交任何密钥。生产环境请通过环境变量或部署平台的 secret manager 注入凭证。
+ArkMem 的运行配置从 YAML 文件读取。开发环境通常修改 `src/main/resources/application-dev.yml`，发布环境通常修改 `src/main/resources/application-release.yml`。启动前确认数据库连接、数据库用户名、数据库密码，以及所选模型 Provider 的 key 和 base URL 即可。
 
-| 变量 | 说明 |
+| YAML 路径 | 说明 |
 | --- | --- |
-| `SPRING_DATASOURCE_URL` | PostgreSQL JDBC URL |
-| `SPRING_DATASOURCE_USERNAME` | PostgreSQL 用户名 |
-| `SPRING_DATASOURCE_PASSWORD` | PostgreSQL 密码 |
-| `ARKMEM_API_INTERNAL_TOKEN` | 可选的服务内部访问 token |
-| `DASHSCOPE_API_KEY` | DashScope / Bailian / MaaS API key；未显式配置 `arkmem.*.api-key` 时使用 |
-| `ARKMEM_LLM_PROVIDER` | `local`、`auto`、`openai`、`openai-compatible`、`aliyun-bailian` |
-| `ARKMEM_LLM_BASE_URL` | OpenAI-compatible chat base URL |
-| `ARKMEM_LLM_MODEL` | Chat model |
-| `ARKMEM_EMBEDDING_PROVIDER` | `local`、`auto`、`openai`、`openai-compatible`、`aliyun-bailian` |
-| `ARKMEM_EMBEDDING_BASE_URL` | OpenAI-compatible embedding base URL |
-| `ARKMEM_EMBEDDING_MODEL` | Embedding model |
-| `ARKMEM_EMBEDDING_LOCAL_DIMENSIONS` | 本地哈希向量维度 |
-| `ARKMEM_PROMPT_LANGUAGE` | `en` 或 `zh` |
+| `spring.datasource.url` | PostgreSQL JDBC URL |
+| `spring.datasource.username` | PostgreSQL 用户名 |
+| `spring.datasource.password` | PostgreSQL 密码 |
+| `arkmem.llm.provider` | LLM Provider，常用 `openai`、`openai-compatible`、`aliyun-bailian` |
+| `arkmem.llm.api-key` | LLM Provider API key |
+| `arkmem.llm.base-url` | OpenAI-compatible chat base URL |
+| `arkmem.llm.model` | Chat model |
+| `arkmem.embedding.provider` | Embedding Provider，常用 `openai`、`openai-compatible`、`aliyun-bailian` |
+| `arkmem.embedding.api-key` | Embedding Provider API key |
+| `arkmem.embedding.base-url` | OpenAI-compatible embedding base URL |
+| `arkmem.embedding.model` | Embedding model |
+| `arkmem.prompt.language` | `en` 或 `zh` |
 
 设置 `ARKMEM_API_INTERNAL_TOKEN` 后，受保护接口接受以下任一认证方式：
 
@@ -168,19 +179,39 @@ curl -X POST http://localhost:19028/search \
 | `local` | 使用启发式抽取和本地哈希向量 |
 | `openai` | 使用 OpenAI chat completions 和 embeddings |
 | `openai-compatible` | 使用自定义 OpenAI-compatible 网关 |
-| `aliyun-bailian` | 使用 DashScope compatible mode；优先使用 `arkmem.*.api-key`，否则读取 `DASHSCOPE_API_KEY` |
-| `auto` | 优先使用 `DASHSCOPE_API_KEY`，再使用 `OPENAI_API_KEY`，不存在时回退到本地模式 |
+| `aliyun-bailian` | 使用阿里云百炼 / MaaS OpenAI-compatible endpoint |
+| `auto` | 根据 YAML 中配置的 key 选择远程 Provider；没有 key 时回退到本地模式 |
 
-DashScope / MaaS Provider 配置示例：
+OpenAI 配置示例：
 
-```bash
-export DASHSCOPE_API_KEY="your-api-key"
-export ARKMEM_LLM_PROVIDER="aliyun-bailian"
-export ARKMEM_EMBEDDING_PROVIDER="aliyun-bailian"
-export ARKMEM_LLM_BASE_URL="https://llm-example.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
-export ARKMEM_EMBEDDING_BASE_URL="https://llm-example.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
-export ARKMEM_LLM_MODEL="qwen3-max"
-export ARKMEM_EMBEDDING_MODEL="text-embedding-v4"
+```yaml
+arkmem:
+  llm:
+    provider: openai
+    api-key: your-openai-api-key
+    base-url: https://api.openai.com/v1
+    model: gpt-4.1-nano-2025-04-14
+  embedding:
+    provider: openai
+    api-key: your-openai-api-key
+    base-url: https://api.openai.com/v1
+    model: text-embedding-3-small
+```
+
+阿里云百炼 / MaaS 配置示例：
+
+```yaml
+arkmem:
+  llm:
+    provider: aliyun-bailian
+    api-key: your-bailian-api-key
+    base-url: https://llm-example.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
+    model: qwen3-max
+  embedding:
+    provider: aliyun-bailian
+    api-key: your-bailian-api-key
+    base-url: https://llm-example.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
+    model: text-embedding-v4
 ```
 
 ## 验证
@@ -202,12 +233,9 @@ BASE_URL=http://localhost:8081 bash scripts/smoke-test.sh
 ```bash
 docker build -t arkmem:local .
 
-docker run --rm --network host \
-  -e SPRING_DATASOURCE_URL="jdbc:postgresql://127.0.0.1:5432/arkmem" \
-  -e SPRING_DATASOURCE_USERNAME="postgres" \
-  -e SPRING_DATASOURCE_PASSWORD="postgres" \
-  -e ARKMEM_LLM_PROVIDER="local" \
-  -e ARKMEM_EMBEDDING_PROVIDER="local" \
+docker run --rm \
+  -p 19028:19028 \
+  -v "$PWD/src/main/resources/application-dev.yml:/app/config/application.yml:ro" \
   arkmem:local
 ```
 
